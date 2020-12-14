@@ -3,6 +3,14 @@
     #include "Aquila.hpp"
 #endif
 
+#ifndef MATRIX3
+#define MATRIX3
+    #include "Matrix3.hpp"
+#endif
+
+
+
+
 class Box {
     public:
         sf::Vector3f pos;
@@ -15,4 +23,10 @@ class Box {
 
         void translate(sf::Vector3f);
         void rotate();
+
+        void rotateX(float);
+        void rotateY(float);
+        void rotateZ(float);
+
+        Matrix3 getRotationMatrix();
 };

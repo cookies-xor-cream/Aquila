@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include <fstream>
+#include <sstream>
 
 #include <random>
 #include <time.h>

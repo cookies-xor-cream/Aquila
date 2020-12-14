@@ -4,8 +4,9 @@
 #endif
 
 
-Camera::Camera(sf::Vector3f origin, float focalLength) {
-    this->origin = origin;
+Camera::Camera(sf::Vector3f origin, sf::Vector3f viewBox, float focalLength) {
+    this->origin = origin + viewBox/2.0f;
+    this->viewBox = viewBox;
     this->focalLength = focalLength;
 }
 
@@ -15,23 +16,34 @@ void Camera::renderBox(sf::RenderWindow *window, Box box) {
 
     sf::Vector2f projectedVertices[8];
 
+    float xOffset = this->viewBox.x/2.0f;
+    float yOffset = this->viewBox.y/2.0f;
+
     // std::cout << "og:" << this->origin.y << std::endl;
 
     for(int i = 0; i < 8; i++) {
-        boxVertices[i] = boxVertices[i] - this->origin;
-        float scaling = focalLength/(focalLength+boxVertices[i].z);     // gotta add error handling for this shit
-                                                                        // don't draw points with z = 0
-        // std::cout << "scaling: " << scaling << std::endl;
-        projectedVertices[i] = sf::Vector2f(scaling*boxVertices[i].x, scaling*boxVertices[i].y);
+        sf::Vector3f v = boxVertices[i];//projectedVertices[i];
+        
+        v = v - this->origin;
+        
+        float scaling = focalLength/(focalLength+v.z);
+        // std::cout << v.z << " ";
 
+        float x = scaling*v.x+xOffset;
+        float y = scaling*v.y+yOffset;
+
+        x = std::isnan(x) ? 0.0f : x;
+        y = std::isnan(y) ? 0.0f : y;
+
+        projectedVertices[i] = sf::Vector2f(x, y);
+
+        // std::cout << x << " " << y << "\t" << projectedVertices[i].x << " " << projectedVertices[i].y << std::endl;
         // sf::CircleShape node(5.0f);
         // node.move(projectedVertices[i]);
         // window->draw(node);
-
-        // sf::Vector2f v = projectedVertices[i];
-
-        // std::cout << v.x << " " << v.y << std::endl;
     }
+
+    // std::cout << std::endl;
 
     sf::Vertex lines[12][2];
     for(int i = 0; i < 8; i++) {

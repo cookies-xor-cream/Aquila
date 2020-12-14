@@ -1,6 +1,6 @@
 COMPILER = g++
 FLAGS = #-Wall -Werror
-OBJ = Aquila.o Camera.o Box.o
+OBJ = Aquila.o Camera.o Box.o Matrix3.o
 PROGRAMNAME = Aquila
 
 main : $(OBJ)
