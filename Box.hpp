@@ -8,14 +8,14 @@
     #include "Matrix3.hpp"
 #endif
 
-
-
-
 class Box {
     public:
         sf::Vector3f pos;
         sf::Vector3f dim;
-        float eulerAngle[3];
+        sf::Vector3f center;
+        sf::Vector3f eulerAngles;
+        
+        // float eulerAngle[3];
 
         Box(sf::Vector3f, sf::Vector3f);
 
@@ -28,5 +28,5 @@ class Box {
         void rotateY(float);
         void rotateZ(float);
 
-        Matrix3 getRotationMatrix();
+        // Matrix3 getRotationMatrix();
 };

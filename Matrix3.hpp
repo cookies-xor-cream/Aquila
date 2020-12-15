@@ -19,6 +19,8 @@ class Matrix3 {
 
         Matrix3(sf::Vector3f, sf::Vector3f, sf::Vector3f);  // takes row vectors
 
+        static Matrix3 getRotationMatrix(sf::Vector3f);
+
         sf::Vector3f transform(sf::Vector3f);
 
         std::string getString();

@@ -7,7 +7,23 @@
 Camera::Camera(sf::Vector3f origin, sf::Vector3f viewBox, float focalLength) {
     this->origin = origin + viewBox/2.0f;
     this->viewBox = viewBox;
+    this->eulerAngles = sf::Vector3f(0.0f,0.0f,0.0f);
+
+    std::cout << this->origin.x << " " << this->origin.y << " " << this->origin.z << " " << std::endl;
+
     this->focalLength = focalLength;
+}
+
+void Camera::rotateX(float angle) {
+    this->eulerAngles.x += angle;
+}
+
+void Camera::rotateY(float angle) {
+    this->eulerAngles.y += angle;
+}
+
+void Camera::rotateZ(float angle) {
+    this->eulerAngles.z += angle;
 }
 
 void Camera::renderBox(sf::RenderWindow *window, Box box) {
@@ -23,8 +39,29 @@ void Camera::renderBox(sf::RenderWindow *window, Box box) {
 
     for(int i = 0; i < 8; i++) {
         sf::Vector3f v = boxVertices[i];//projectedVertices[i];
+
+        v -= this->origin;
+
+        std::cout << v.x << " " << v.y << " " << v.z << " " << std::endl;
+
+        // v -= sf::Vector3f(100.0f,200.0f,100.0f);
+
+        // v -= this->viewBox;
+
+        Matrix3 rotMatrix = Matrix3::getRotationMatrix(this->eulerAngles);
+        v = rotMatrix.transform(v);
+
+        // v += sf::Vector3f(100.0f,200.0f,100.0f);
+
+        // v += this->viewBox;
         
-        v = v - this->origin;
+        // v -= this->origin;
+
+        // rotate v
+
+        // v += this->origin;
+
+        // --------------------
         
         float scaling = focalLength/(focalLength+v.z);
         // std::cout << v.z << " ";
@@ -43,7 +80,7 @@ void Camera::renderBox(sf::RenderWindow *window, Box box) {
         // window->draw(node);
     }
 
-    // std::cout << std::endl;
+    std::cout << std::endl;
 
     sf::Vertex lines[12][2];
     for(int i = 0; i < 8; i++) {

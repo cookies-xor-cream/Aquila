@@ -160,3 +160,37 @@ sf::Vector3f Matrix3::transform(sf::Vector3f input) {
         input.x * A[6] + input.y * A[7] + input.z * A[8]
     );
 }
+
+Matrix3 Matrix3::getRotationMatrix(sf::Vector3f eulerAngles) {
+    float sine, cosine;
+
+    sine = std::sin(eulerAngles.x);
+    cosine = std::cos(eulerAngles.x);
+
+    Matrix3 rotX(
+        1.0f, 0.0f, 0.0f,
+        0.0f, cosine, sine,
+        0.0f, -sine, cosine
+    );
+
+    sine = std::sin(eulerAngles.y);
+    cosine = std::cos(eulerAngles.y);
+
+    Matrix3 rotY(
+        cosine, 0.0f, sine,
+        0.0f, 1.0f, 0.0f,
+        -sine, 0.0f, cosine
+    );
+
+    sine = std::sin(eulerAngles.z);
+    cosine = std::cos(eulerAngles.z);
+
+    Matrix3 rotZ(
+        cosine, -sine, 0.0f,
+        sine, cosine, 0.0f,
+        0.0f, 0.0f, 1.0f
+    );
+
+    Matrix3 rotationMatrix = (rotX * rotY * rotZ);
+    return rotationMatrix;
+}
