@@ -3,24 +3,42 @@
     #include "Aquila.hpp"
 #endif
 
-#ifndef BOXHPP
-#define BOXHPP
-    #include "Box.hpp"
+#ifndef MESHHPP
+#define MESHHPP
+    #include "Mesh.hpp"
+#endif
+
+#ifndef MATRIX4
+#define MATRIX4
+    #include "Matrix4.hpp"
+#endif
+
+#ifndef MATRIX3
+#define MATRIX3
+    #include "Matrix3.hpp"
+#endif
+
+#ifndef VECTOR2HPP
+#define VECTOR2HPP
+    #include "Vector2.hpp"
 #endif
 
 class Camera {
     public:
-        sf::Vector3f origin;
-        sf::Vector3f viewBox;
-        sf::Vector3f eulerAngles;
+        Vector3 origin;
+        Vector2 eulerAngles;
+        float viewAngle, focalLength, minLength, maxLength, aspectRatio, w, h;
 
-        float focalLength;
+        Matrix4 projectionMatrix;
 
-        Camera(sf::Vector3f, sf::Vector3f, float);
+        Camera(Vector3, float, float, float, float, float);
 
-        void renderBox(sf::RenderWindow *, Box);
+        Matrix4 computeProjectionMatrix();
 
-        void rotateX(float);
-        void rotateY(float);
-        void rotateZ(float);
+        void translate(Vector3);
+        void rotate(Vector2);
+
+        Vector2 projectVertexToScreen(Vector3&);
+        sf::ConvexShape projectTriangle(Triangle&, sf::RenderWindow&);
+        void renderMesh(sf::RenderWindow&, Mesh&); 
 };

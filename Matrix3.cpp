@@ -36,7 +36,7 @@ Matrix3::Matrix3(float values[9]) {
     );
 }
 
-Matrix3::Matrix3(sf::Vector3f a, sf::Vector3f b, sf::Vector3f c) {
+Matrix3::Matrix3(Vector3 a, Vector3 b, Vector3 c) {
     Matrix3(
         a.x, a.y, a.z,
         b.x, b.y, b.z,
@@ -152,16 +152,16 @@ Matrix3 Matrix3::operator *(const Matrix3& right) {
 //     this = (*this) * right;
 // }
 
-sf::Vector3f Matrix3::transform(sf::Vector3f input) {
+Vector3 Matrix3::transform(Vector3 input) {
     auto A = this->vals;
-    return sf::Vector3f(
+    return Vector3(
         input.x * A[0] + input.y * A[1] + input.z * A[2],
         input.x * A[3] + input.y * A[4] + input.z * A[5],
         input.x * A[6] + input.y * A[7] + input.z * A[8]
     );
 }
 
-Matrix3 Matrix3::getRotationMatrix(sf::Vector3f eulerAngles) {
+Matrix3 Matrix3::getRotationMatrix(Vector3 eulerAngles) {
     float sine, cosine;
 
     sine = std::sin(eulerAngles.x);
