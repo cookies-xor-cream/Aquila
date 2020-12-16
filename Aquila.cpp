@@ -62,6 +62,9 @@ int main(int argc, char *argv[]) {
 
     Camera camera(Vector3(0.0f, 0.0f, 0.0f), M_PI_2, 1000.0f, 0.1f, (float) canvasWidth, (float) canvasHeight);
 
+    // sf::Vector2i centerOfScreen(canvasWidth/2, canvasHeight/2);
+    sf::Vector2i prevMPos = sf::Mouse::getPosition(window);
+
     while(window.isOpen()) {
         dt = clock.restart().asSeconds();
 
@@ -74,8 +77,17 @@ int main(int argc, char *argv[]) {
             (float) sf::Keyboard::isKeyPressed(sf::Keyboard::A) - (float) sf::Keyboard::isKeyPressed(sf::Keyboard::D),
             (float) sf::Keyboard::isKeyPressed(sf::Keyboard::W) - (float) sf::Keyboard::isKeyPressed(sf::Keyboard::S),
             (float) sf::Keyboard::isKeyPressed(sf::Keyboard::Q) - (float) sf::Keyboard::isKeyPressed(sf::Keyboard::E)
-            ) * dt * 3.0f
+            ) * dt * 4.0f
         );
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+            sf::Vector2i mouseMove = prevMPos - sf::Mouse::getPosition(window);
+            camera.rotate(Vector2((float) mouseMove.y, (float) mouseMove.x) * -0.0003f);
+        }
+
+        prevMPos = sf::Mouse::getPosition(window);
+
+        // sf::Mouse::setPosition(centerOfScreen, window);
 
         camera.renderMesh(window, cuboid);
 

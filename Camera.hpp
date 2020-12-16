@@ -39,6 +39,7 @@ class Camera {
         void rotate(Vector2);
 
         Vector2 projectVertexToScreen(Vector3&);
+        Vector4 transformToCameraView(Vector3&);
         sf::ConvexShape projectTriangle(Triangle&, sf::RenderWindow&);
         void renderMesh(sf::RenderWindow&, Mesh&); 
 };

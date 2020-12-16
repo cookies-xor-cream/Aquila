@@ -43,21 +43,45 @@ Matrix4 Camera::computeProjectionMatrix() {
 
 void Camera::translate(Vector3 displacement) {
     this->origin += displacement;
-
+    // this->origin.print();
 }
 
 void Camera::rotate(Vector2 rotation) {
     this->eulerAngles += rotation;
 }
 
-Vector2 Camera::projectVertexToScreen(Vector3 &vertex) {
+Vector4 Camera::transformToCameraView(Vector3 &vertex) {
     Vector3 vRot = vertex - this->origin;
 
-    Matrix3 rotMatrix = Matrix3::getRotationMatrix(Vector3(this->eulerAngles.y, this->eulerAngles.x, 0.0f));
+    // vRot += Vector3(-0.4f, 0.0f, 0.0f);
+
+    Matrix3 rotMatrix = Matrix3::getRotationMatrix(Vector3(this->eulerAngles.x, this->eulerAngles.y, 0.0f));
 
     vRot = rotMatrix.transform(vRot);
 
     Vector4 v(vRot, 1.0f);
+
+    // if(v.k) {
+    //     v.x /= v.k;
+    //     v.y /= v.k;
+    //     v.z /= v.k;
+    // }
+
+    return v;
+}
+
+Vector2 Camera::projectVertexToScreen(Vector3 &vertex) {
+    // Vector3 vRot = vertex - this->origin;
+
+    // vRot += Vector3(-0.4f, 0.0f, 10.0f);
+
+    // Matrix3 rotMatrix = Matrix3::getRotationMatrix(Vector3(this->eulerAngles.x, this->eulerAngles.y, 0.0f));
+
+    // vRot = rotMatrix.transform(vRot);
+
+    // Vector4 v(vRot, 1.0f);
+
+    Vector4 v = Vector4(vertex, 1.0f);
 
     v = this->projectionMatrix.transform(v);
 
@@ -75,11 +99,23 @@ Vector2 Camera::projectVertexToScreen(Vector3 &vertex) {
 }
 
 sf::ConvexShape Camera::projectTriangle(Triangle &triangle, sf::RenderWindow &window) {
-    Vector2 projectedVertices[3] {
-        this->projectVertexToScreen(triangle.vertices[0]),
-        this->projectVertexToScreen(triangle.vertices[1]),
-        this->projectVertexToScreen(triangle.vertices[2])
+    Vector4 transformedVertices[3] {
+        this->transformToCameraView(triangle.vertices[0]),
+        this->transformToCameraView(triangle.vertices[1]),
+        this->transformToCameraView(triangle.vertices[2])
     };
+
+    Vector2 projectedVertices[3];
+
+    for(int i = 0; i < 3; i++) {
+        Vector3 triangleVertices(
+            transformedVertices[i].x,
+            transformedVertices[i].y,
+            transformedVertices[i].z
+        );
+
+        projectedVertices[i] = this->projectVertexToScreen(triangleVertices);
+    }
 
     sf::ConvexShape projectedTriangle;
     projectedTriangle.setPointCount(3);
