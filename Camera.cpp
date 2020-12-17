@@ -43,6 +43,7 @@ Matrix4 Camera::computeProjectionMatrix() {
 
 void Camera::translate(Vector3 displacement) {
     this->origin += displacement;
+    
     // this->origin.print();
 }
 
@@ -105,16 +106,31 @@ sf::ConvexShape Camera::projectTriangle(Triangle &triangle, sf::RenderWindow &wi
         this->transformToCameraView(triangle.vertices[2])
     };
 
-    Vector2 projectedVertices[3];
-
+    Vector3 triangleVertices[3];
     for(int i = 0; i < 3; i++) {
-        Vector3 triangleVertices(
+        Vector3 vertexLocation(
             transformedVertices[i].x,
             transformedVertices[i].y,
             transformedVertices[i].z
         );
 
-        projectedVertices[i] = this->projectVertexToScreen(triangleVertices);
+        triangleVertices[i] = vertexLocation;
+    }
+
+    Vector3 edges[2] = {
+        triangleVertices[1] - triangleVertices[0],
+        triangleVertices[2] - triangleVertices[1]
+    };                      // Only 2 edges are needed for a dot product as the final edge is coplanar
+
+    Vector3 normal = Vector3::cross(edges[0], edges[1]);
+    // Vector3 triangleCenterToOrigin = (triangleVertices[0] + triangleVertices[1] + triangleVertices[2])/3.0f - this->origin;
+
+    float dotProduct = normal * triangleVertices[0];
+
+    Vector2 projectedVertices[3];
+
+    for(int i = 0; i < 3; i++) {
+        projectedVertices[i] = this->projectVertexToScreen(triangleVertices[i]);
     }
 
     sf::ConvexShape projectedTriangle;
@@ -132,10 +148,9 @@ sf::ConvexShape Camera::projectTriangle(Triangle &triangle, sf::RenderWindow &wi
             sf::Vertex(sf::Vector2f(projectedVertices[(i+1)%3].x, projectedVertices[(i+1)%3].y), sf::Color::Red)
         };
 
-        window.draw(edge, 2, sf::Lines);
-        sf::CircleShape c(5.0f);
-        c.move(sf::Vector2f(projectedVertices[i].x, projectedVertices[i].y));
-        window.draw(c);
+        if(dotProduct < 0.0f) {
+            window.draw(edge, 2, sf::Lines);
+        }
     }
 
     return projectedTriangle;
@@ -149,12 +164,12 @@ void Camera::renderMesh(sf::RenderWindow &window, Mesh &mesh) {
         // triangle.print();
     }
 
-    for(sf::ConvexShape &triangle : triangleBuffer) {
-        window.draw(triangle);
-    }
+    // for(sf::ConvexShape &triangle : triangleBuffer) {
+    //     window.draw(triangle);
+    // }
 
-    for(Triangle &triangle : mesh.triangles) {
-        triangleBuffer.push_back(this->projectTriangle(triangle, window));
-        // triangle.print();
-    }
+    // for(Triangle &triangle : mesh.triangles) {
+    //     triangleBuffer.push_back(this->projectTriangle(triangle, window));
+    //     // triangle.print();
+    // }
 }

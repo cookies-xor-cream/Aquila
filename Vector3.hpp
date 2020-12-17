@@ -21,6 +21,8 @@ class Vector3 {
         Vector3 operator *(const float);                            // Scalar product        
         Vector3 operator /(const float);                            // Scalar product
 
+        static Vector3 mult(const Vector3&, const Vector3&);        // Element-wise multiplication of 2 vectors
+
         // bool operator ==(const Vector3&);                           // Vector equality
         // bool operator !=(const Vector3&);                           // Accounts for floating point arithmetic
 

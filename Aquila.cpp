@@ -39,18 +39,18 @@ int main(int argc, char *argv[]) {
     };
 
     Triangle arroftris[] = {
-        Triangle(vertices[0], vertices[2], vertices[3]),
-        Triangle(vertices[0], vertices[3], vertices[1]),
-        Triangle(vertices[1], vertices[3], vertices[7]),
-        Triangle(vertices[1], vertices[7], vertices[5]),
-        Triangle(vertices[5], vertices[7], vertices[6]),
-        Triangle(vertices[5], vertices[7], vertices[4]),
-        Triangle(vertices[4], vertices[6], vertices[2]),
-        Triangle(vertices[4], vertices[2], vertices[0]),
-        Triangle(vertices[2], vertices[6], vertices[7]),
-        Triangle(vertices[2], vertices[7], vertices[3]),
-        Triangle(vertices[4], vertices[0], vertices[1]),
-        Triangle(vertices[4], vertices[1], vertices[5])
+        Triangle(vertices[0], vertices[2], vertices[3]), //!
+        Triangle(vertices[0], vertices[3], vertices[1]), //!
+        Triangle(vertices[1], vertices[3], vertices[7]), //!
+        Triangle(vertices[1], vertices[7], vertices[5]), //!
+        Triangle(vertices[5], vertices[7], vertices[6]), //!
+        Triangle(vertices[5], vertices[6], vertices[4]), //!
+        Triangle(vertices[4], vertices[6], vertices[2]), //!
+        Triangle(vertices[4], vertices[2], vertices[0]), //!
+        Triangle(vertices[2], vertices[6], vertices[7]), //!
+        Triangle(vertices[2], vertices[7], vertices[3]), //!
+        Triangle(vertices[4], vertices[0], vertices[1]), //!
+        Triangle(vertices[4], vertices[1], vertices[5])  //!
     };
 
     std::vector<Triangle> triangles;
@@ -72,13 +72,18 @@ int main(int argc, char *argv[]) {
             window.close();
         }
 
-        camera.translate(
-            Vector3(
+        Vector3 translation(
             (float) sf::Keyboard::isKeyPressed(sf::Keyboard::A) - (float) sf::Keyboard::isKeyPressed(sf::Keyboard::D),
             (float) sf::Keyboard::isKeyPressed(sf::Keyboard::W) - (float) sf::Keyboard::isKeyPressed(sf::Keyboard::S),
             (float) sf::Keyboard::isKeyPressed(sf::Keyboard::Q) - (float) sf::Keyboard::isKeyPressed(sf::Keyboard::E)
-            ) * dt * 4.0f
         );
+        
+        translation = translation * dt * 4.0f;
+
+        // Matrix3 rotMatrix = Matrix3::getRotationMatrix(Vector3(camera.eulerAngles.x, camera.eulerAngles.y, 0.0f));
+        // translation = rotMatrix.transform(translation);
+
+        camera.translate(translation);
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
             sf::Vector2i mouseMove = prevMPos - sf::Mouse::getPosition(window);
