@@ -26,6 +26,8 @@ Camera::Camera(Vector3 origin, float viewAngle, float maxLength, float minLength
 
     this->w = width;
     this->h = height;
+
+    this->directionalLight = Vector3(0.0f, 1.0f, 1.0f);
 }
 
 Matrix4 Camera::computeProjectionMatrix() {
@@ -99,7 +101,7 @@ Vector2 Camera::projectVertexToScreen(Vector3 &vertex) {
     return pV;
 }
 
-sf::ConvexShape Camera::projectTriangle(Triangle &triangle, sf::RenderWindow &window) {
+convexShape Camera::projectTriangle(Triangle &triangle, sf::RenderWindow &window) {
     Vector4 transformedVertices[3] {
         this->transformToCameraView(triangle.vertices[0]),
         this->transformToCameraView(triangle.vertices[1]),
@@ -133,7 +135,25 @@ sf::ConvexShape Camera::projectTriangle(Triangle &triangle, sf::RenderWindow &wi
         projectedVertices[i] = this->projectVertexToScreen(triangleVertices[i]);
     }
 
+    float angleFromLight = std::acos((normal*this->directionalLight)/(normal.mag() * this->directionalLight.mag()));
+    float angleFromCamera = std::acos((normal*triangleVertices[0])/(normal.mag() * triangleVertices[0].mag()));
+    // std::cout << angleFromCamera << std::endl;
+
+    float proportionOfLightReflectedBySurface = (1 - angleFromLight/(2*M_PI));
+    float proportionOfLightReflectedToCamera = (1 - angleFromCamera/(2*M_PI));
+
+    uint8_t intensityOfLight = (uint8_t) 255 * proportionOfLightReflectedBySurface * proportionOfLightReflectedToCamera;
+
+    // std::cout << proportionOfLightReflectedBySurface << std::endl;
+
+    sf::Color triangleColor(intensityOfLight, intensityOfLight, intensityOfLight);
+
+    // std::cout << triangleColor;
+
+    // std::cout << triangleColor.r << " " << triangleColor.g << " " << triangleColor.b << std::endl;
+
     sf::ConvexShape projectedTriangle;
+    projectedTriangle.setFillColor(triangleColor);
     projectedTriangle.setPointCount(3);
 
     // projectedVertices[0].print();
@@ -142,31 +162,34 @@ sf::ConvexShape Camera::projectTriangle(Triangle &triangle, sf::RenderWindow &wi
     projectedTriangle.setPoint(1, sf::Vector2f(projectedVertices[1].x, projectedVertices[1].y));
     projectedTriangle.setPoint(2, sf::Vector2f(projectedVertices[2].x, projectedVertices[2].y));
 
-    for(int i = 0; i < 3; i++) {
-        sf::Vertex edge[2] = {
-            sf::Vertex(sf::Vector2f(projectedVertices[i].x, projectedVertices[i].y), sf::Color::Red),
-            sf::Vertex(sf::Vector2f(projectedVertices[(i+1)%3].x, projectedVertices[(i+1)%3].y), sf::Color::Red)
-        };
+    struct convexShape shape;
 
-        if(dotProduct < 0.0f) {
-            window.draw(edge, 2, sf::Lines);
-        }
-    }
+    shape.tri       = projectedTriangle;
+    shape.dotProd   = dotProduct;
+    shape.depth     = triangleVertices[0].z;
 
-    return projectedTriangle;
+    return shape;
 }
 
 void Camera::renderMesh(sf::RenderWindow &window, Mesh &mesh) {
-    std::vector<sf::ConvexShape> triangleBuffer;
+    std::vector<convexShape> triangleBuffer;
     
     for(Triangle &triangle : mesh.triangles) {
-        triangleBuffer.push_back(this->projectTriangle(triangle, window));
-        // triangle.print();
+        struct convexShape shape = this->projectTriangle(triangle, window);
+        if(shape.dotProd < 0.0f) {
+            triangleBuffer.push_back(shape);
+        }
     }
 
-    // for(sf::ConvexShape &triangle : triangleBuffer) {
-    //     window.draw(triangle);
-    // }
+    std::sort(triangleBuffer.begin(), triangleBuffer.end(),
+        [](const struct convexShape &a, const struct convexShape &b) -> bool {
+            return a.depth > b.depth;
+        }
+    );
+
+    for(convexShape &triangle : triangleBuffer) {
+        window.draw(triangle.tri);
+    }
 
     // for(Triangle &triangle : mesh.triangles) {
     //     triangleBuffer.push_back(this->projectTriangle(triangle, window));

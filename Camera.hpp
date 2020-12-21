@@ -23,11 +23,20 @@
     #include "Vector2.hpp"
 #endif
 
+struct convexShape {
+    sf::ConvexShape tri;
+    sf::Color color;
+    float dotProd;
+    float depth;
+};
+
 class Camera {
     public:
         Vector3 origin;
         Vector2 eulerAngles;
         float viewAngle, focalLength, minLength, maxLength, aspectRatio, w, h;
+
+        Vector3 directionalLight;
 
         Matrix4 projectionMatrix;
 
@@ -40,6 +49,6 @@ class Camera {
 
         Vector2 projectVertexToScreen(Vector3&);
         Vector4 transformToCameraView(Vector3&);
-        sf::ConvexShape projectTriangle(Triangle&, sf::RenderWindow&);
+        convexShape projectTriangle(Triangle&, sf::RenderWindow&);
         void renderMesh(sf::RenderWindow&, Mesh&); 
 };

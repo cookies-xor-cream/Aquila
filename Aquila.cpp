@@ -61,8 +61,9 @@ int main(int argc, char *argv[]) {
     // Mesh cuboid(triangles);
     Mesh cuboid("./Models/Cat/CatThing.obj");
     // Mesh cuboid("./Models/BoxThing/BoxThing.obj");
+    // Mesh cuboid("./Models/Sword/Sword.obj");
 
-    Camera camera(Vector3(0.0f, 0.0f, 0.0f), M_PI_2, 1000.0f, 0.1f, (float) canvasWidth, (float) canvasHeight);
+    Camera camera(Vector3(0.0f, 0.0f, -500.0f), M_PI_2, 1000.0f, 0.1f, (float) canvasWidth, (float) canvasHeight);
 
     // sf::Vector2i centerOfScreen(canvasWidth/2, canvasHeight/2);
     sf::Vector2i prevMPos = sf::Mouse::getPosition(window);
