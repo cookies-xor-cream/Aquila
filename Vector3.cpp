@@ -13,6 +13,12 @@ Vector3::Vector3(float x, float y, float z) {
     this->z = z;
 }
 
+Vector3::Vector3(float v[3]) {
+    this->x = v[0];
+    this->y = v[1];
+    this->z = v[2];
+}
+
 Vector3 Vector3::operator +(const Vector3 &b) {
     Vector3 a = (*this);
     return Vector3(a.x+b.x, a.y+b.y, a.z+b.z);

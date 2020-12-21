@@ -9,6 +9,7 @@ class Vector3 {
 
         Vector3();
         Vector3(float, float, float);
+        Vector3(float[3]);
 
         Vector3 operator +(const Vector3&);                         // Vector addition
         Vector3 operator +=(const Vector3&);

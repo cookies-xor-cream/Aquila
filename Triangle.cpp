@@ -14,8 +14,9 @@ Triangle::Triangle(const Vector3 &v1, const Vector3 &v2, const Vector3 &v3) {
 }
 
 Triangle::Triangle(Vector3 vertices[3]) {
-    // this->vertices = vertices;
-    Triangle(vertices[0], vertices[1], vertices[2]);
+    this->vertices[0] = vertices[0];
+    this->vertices[1] = vertices[1];
+    this->vertices[2] = vertices[2];
 }
 
 void Triangle::print() {
