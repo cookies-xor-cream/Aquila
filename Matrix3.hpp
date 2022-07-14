@@ -3,6 +3,11 @@
     #include "Aquila.hpp"
 #endif
 
+#ifndef VECTOR3HPP
+#define VECTOR3HPP
+    #include "Vector3.hpp"
+#endif
+
 class Matrix3 {
     public:
     float vals[9];
@@ -17,11 +22,11 @@ class Matrix3 {
 
         Matrix3(float[9]);
 
-        Matrix3(sf::Vector3f, sf::Vector3f, sf::Vector3f);  // takes row vectors
+        Matrix3(Vector3, Vector3, Vector3);  // takes row vectors
 
-        static Matrix3 getRotationMatrix(sf::Vector3f);
+        static Matrix3 getRotationMatrix(Vector3);
 
-        sf::Vector3f transform(sf::Vector3f);
+        Vector3 transform(Vector3);
 
         std::string getString();
 

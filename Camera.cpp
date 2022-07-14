@@ -1,112 +1,198 @@
+#ifndef AQUILAHPP
+#define AQUILAHPP
+    #include "Aquila.hpp"
+#endif
+
 #ifndef CAMERAHPP
 #define CAMERAHPP
     #include "Camera.hpp"
 #endif
 
+Camera::Camera(Vector3 origin, float viewAngle, float maxLength, float minLength, float width, float height) { 
+    std::cout << "construct " << width << " " << height << std::endl;   
+    this->origin = origin;
 
-Camera::Camera(sf::Vector3f origin, sf::Vector3f viewBox, float focalLength) {
-    this->origin = origin + viewBox/2.0f;
-    this->viewBox = viewBox;
-    this->eulerAngles = sf::Vector3f(0.0f,0.0f,0.0f);
+    this->viewAngle = viewAngle;
 
-    std::cout << this->origin.x << " " << this->origin.y << " " << this->origin.z << " " << std::endl;
+    this->focalLength = maxLength/(maxLength-minLength);
 
-    this->focalLength = focalLength;
+    this->minLength = minLength;
+    this->maxLength = maxLength;
+
+    this->aspectRatio = height/width;
+    this->projectionMatrix = this->computeProjectionMatrix();
+
+    this->eulerAngles = Vector2(0.0f, 0.0f);
+
+    this->w = width;
+    this->h = height;
+
+    this->directionalLight = Vector3(0.0f, 1.0f, 1.0f);
 }
 
-void Camera::rotateX(float angle) {
-    this->eulerAngles.x += angle;
+Matrix4 Camera::computeProjectionMatrix() {
+    float tangent = std::tan(this->viewAngle/2.0f);
+    float invTangent = std::isnan(tangent) ? 0.0f : tangent; //f
+
+
+    return Matrix4(
+        this->aspectRatio * invTangent,     0.0f,                               0.0f,                                   0.0f,
+        0.0f,                               invTangent,                         0.0f,                                   0.0f,
+        0.0f,                               0.0f,                               this->focalLength,                      1.0f,
+        0.0f,                               0.0f,                               -this->focalLength * this->minLength,   0.0f
+    );
 }
 
-void Camera::rotateY(float angle) {
-    this->eulerAngles.y += angle;
+void Camera::translate(Vector3 displacement) {
+    this->origin += displacement;
+    
+    // this->origin.print();
 }
 
-void Camera::rotateZ(float angle) {
-    this->eulerAngles.z += angle;
+void Camera::rotate(Vector2 rotation) {
+    this->eulerAngles += rotation;
 }
 
-void Camera::renderBox(sf::RenderWindow *window, Box box) {
-    sf::Vector3f boxVertices[8];
-    box.getVertexLocations(boxVertices);
+Vector4 Camera::transformToCameraView(Vector3 &vertex) {
+    Vector3 vRot = vertex - this->origin;
 
-    sf::Vector2f projectedVertices[8];
+    // vRot += Vector3(-0.4f, 0.0f, 0.0f);
 
-    float xOffset = this->viewBox.x/2.0f;
-    float yOffset = this->viewBox.y/2.0f;
+    Matrix3 rotMatrix = Matrix3::getRotationMatrix(Vector3(this->eulerAngles.x, this->eulerAngles.y, 0.0f));
 
-    // std::cout << "og:" << this->origin.y << std::endl;
+    vRot = rotMatrix.transform(vRot);
 
-    for(int i = 0; i < 8; i++) {
-        sf::Vector3f v = boxVertices[i];//projectedVertices[i];
+    Vector4 v(vRot, 1.0f);
 
-        v -= this->origin;
+    // if(v.k) {
+    //     v.x /= v.k;
+    //     v.y /= v.k;
+    //     v.z /= v.k;
+    // }
 
-        std::cout << v.x << " " << v.y << " " << v.z << " " << std::endl;
+    return v;
+}
 
-        // v -= sf::Vector3f(100.0f,200.0f,100.0f);
+Vector2 Camera::projectVertexToScreen(Vector3 &vertex) {
+    // Vector3 vRot = vertex - this->origin;
 
-        // v -= this->viewBox;
+    // vRot += Vector3(-0.4f, 0.0f, 10.0f);
 
-        Matrix3 rotMatrix = Matrix3::getRotationMatrix(this->eulerAngles);
-        v = rotMatrix.transform(v);
+    // Matrix3 rotMatrix = Matrix3::getRotationMatrix(Vector3(this->eulerAngles.x, this->eulerAngles.y, 0.0f));
 
-        // v += sf::Vector3f(100.0f,200.0f,100.0f);
+    // vRot = rotMatrix.transform(vRot);
 
-        // v += this->viewBox;
-        
-        // v -= this->origin;
+    // Vector4 v(vRot, 1.0f);
 
-        // rotate v
+    Vector4 v = Vector4(vertex, 1.0f);
 
-        // v += this->origin;
+    v = this->projectionMatrix.transform(v);
 
-        // --------------------
-        
-        float scaling = focalLength/(focalLength+v.z);
-        // std::cout << v.z << " ";
-
-        float x = scaling*v.x+xOffset;
-        float y = scaling*v.y+yOffset;
-
-        x = std::isnan(x) ? 0.0f : x;
-        y = std::isnan(y) ? 0.0f : y;
-
-        projectedVertices[i] = sf::Vector2f(x, y);
-
-        // std::cout << x << " " << y << "\t" << projectedVertices[i].x << " " << projectedVertices[i].y << std::endl;
-        // sf::CircleShape node(5.0f);
-        // node.move(projectedVertices[i]);
-        // window->draw(node);
+    if(v.k) {
+        v.x /= v.k;
+        v.y /= v.k;
+        v.z /= v.k;
     }
 
-    std::cout << std::endl;
+    Vector2 pV(v.x, v.y);
+    pV = pV + Vector2(1.0f, 1.0f);
+    pV = Vector2::mult(pV, Vector2(this->w, this->h) * 0.5f);
 
-    sf::Vertex lines[12][2];
-    for(int i = 0; i < 8; i++) {
-        lines[i][0] = sf::Vertex(projectedVertices[i]);
-        lines[i][1] = sf::Vertex(projectedVertices[(i+1)%8]);
+    return pV;
+}
+
+convexShape Camera::projectTriangle(Triangle &triangle, sf::RenderWindow &window) {
+    Vector4 transformedVertices[3] {
+        this->transformToCameraView(triangle.vertices[0]),
+        this->transformToCameraView(triangle.vertices[1]),
+        this->transformToCameraView(triangle.vertices[2])
+    };
+
+    Vector3 triangleVertices[3];
+    for(int i = 0; i < 3; i++) {
+        Vector3 vertexLocation(
+            transformedVertices[i].x,
+            transformedVertices[i].y,
+            transformedVertices[i].z
+        );
+
+        triangleVertices[i] = vertexLocation;
     }
 
-    lines[8][0] = sf::Vertex(projectedVertices[4]);
-    lines[8][1] = sf::Vertex(projectedVertices[7]);
+    Vector3 edges[2] = {
+        triangleVertices[1] - triangleVertices[0],
+        triangleVertices[2] - triangleVertices[1]
+    };                      // Only 2 edges are needed for a dot product as the final edge is coplanar
 
-    lines[9][0] = sf::Vertex(projectedVertices[1]);
-    lines[9][1] = sf::Vertex(projectedVertices[6]);
+    Vector3 normal = Vector3::cross(edges[0], edges[1]);
+    // Vector3 triangleCenterToOrigin = (triangleVertices[0] + triangleVertices[1] + triangleVertices[2])/3.0f - this->origin;
 
-    lines[10][0] = sf::Vertex(projectedVertices[2]);
-    lines[10][1] = sf::Vertex(projectedVertices[5]);
+    float dotProduct = normal * triangleVertices[0];
 
-    lines[11][0] = sf::Vertex(projectedVertices[0]);
-    lines[11][1] = sf::Vertex(projectedVertices[3]);
+    Vector2 projectedVertices[3];
 
-    for(int i = 0; i < 12; i++) {
-        window->draw(lines[i], 2, sf::Lines);
+    for(int i = 0; i < 3; i++) {
+        projectedVertices[i] = this->projectVertexToScreen(triangleVertices[i]);
     }
 
-    // lines[8] = 
+    float angleFromLight = std::acos((normal*this->directionalLight)/(normal.mag() * this->directionalLight.mag()));
+    float angleFromCamera = std::acos((normal*triangleVertices[0])/(normal.mag() * triangleVertices[0].mag()));
+    // std::cout << angleFromCamera << std::endl;
 
-    // std::cout << std::endl;
+    float proportionOfLightReflectedBySurface = (1 - angleFromLight/(2*M_PI));
+    float proportionOfLightReflectedToCamera = (1 - angleFromCamera/(2*M_PI));
 
-    // window->draw(sf::RectangleShape(sf::Vector2f(50.0f,50.0f)));
+    uint8_t intensityOfLight = (uint8_t) 255 * proportionOfLightReflectedBySurface * proportionOfLightReflectedToCamera;
+
+    // std::cout << proportionOfLightReflectedBySurface << std::endl;
+
+    sf::Color triangleColor(intensityOfLight, intensityOfLight, intensityOfLight);
+
+    // std::cout << triangleColor;
+
+    // std::cout << triangleColor.r << " " << triangleColor.g << " " << triangleColor.b << std::endl;
+
+    sf::ConvexShape projectedTriangle;
+    projectedTriangle.setFillColor(triangleColor);
+    projectedTriangle.setPointCount(3);
+
+    // projectedVertices[0].print();
+
+    projectedTriangle.setPoint(0, sf::Vector2f(projectedVertices[0].x, projectedVertices[0].y));
+    projectedTriangle.setPoint(1, sf::Vector2f(projectedVertices[1].x, projectedVertices[1].y));
+    projectedTriangle.setPoint(2, sf::Vector2f(projectedVertices[2].x, projectedVertices[2].y));
+
+    struct convexShape shape;
+
+    shape.tri       = projectedTriangle;
+    shape.dotProd   = dotProduct;
+    shape.depth     = triangleVertices[0].z;
+
+    return shape;
+}
+
+void Camera::renderMesh(sf::RenderWindow &window, Mesh &mesh) {
+    std::vector<convexShape> triangleBuffer;
+    
+    for(Triangle &triangle : mesh.triangles) {
+        struct convexShape shape = this->projectTriangle(triangle, window);
+        if(shape.dotProd < 0.0f) {
+            triangleBuffer.push_back(shape);
+        }
+    }
+
+    std::sort(triangleBuffer.begin(), triangleBuffer.end(),
+        [](const struct convexShape &a, const struct convexShape &b) -> bool {
+            return a.depth > b.depth;
+        }
+    );
+
+    for(convexShape &triangle : triangleBuffer) {
+        window.draw(triangle.tri);
+    }
+
+    // for(Triangle &triangle : mesh.triangles) {
+    //     triangleBuffer.push_back(this->projectTriangle(triangle, window));
+    //     // triangle.print();
+    // }
 }
